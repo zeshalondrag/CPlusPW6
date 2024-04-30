@@ -1,54 +1,57 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
-#include <vector>
-#include <algorithm>
-#include <Windows.h>
 
 using namespace std;
+
+const int MAX_SUBJECTS = 10;
 
 class Student {
 private:
     string group_name;
-    vector<string> subjects;
-    int completed_assignments;
-    int debts_count;
-public:
-    Student(const string& group) : group_name(group), completed_assignments(0), debts_count(0) {}
+    string subjects[MAX_SUBJECTS];
+    int subjects_count = 0;
+    int completed_assignments = 0;
+    int debts_count = 0;
 
-    vector<string> getSubjects() const {
+public:
+    Student() : group_name(""), subjects_count(0), completed_assignments(0), debts_count(0) {}
+
+    explicit Student(const string& group) : group_name(group) {}
+
+    string* getSubjects() {
         return subjects;
     }
 
+    int getSubjectsCount() const {
+        return subjects_count;
+    }
+
     void addSubject(const string& subject) {
-        if (subjects.end() == find(subjects.begin(), subjects.end(), subject))
-            subjects.push_back(subject);
-        else
-            cout << "Дисциплина \"" << subject << "\" уже есть у студента" << endl;
+        if (subjects_count < MAX_SUBJECTS) {
+            subjects[subjects_count++] = subject;
+        }
+        else {
+            cout << "Достигнуто максимальное количество дисциплин!" << endl;
+        }
     }
 
     void submitAssignment() {
-        completed_assignments++;
+        ++completed_assignments;
     }
 
     void failAssignment() {
-        debts_count++;
+        ++debts_count;
     }
 
     void forgiveDebt() {
         if (debts_count > 0) {
-            debts_count--;
-        }
-        else {
-            debts_count = debts_count;
+            --debts_count;
         }
     }
 
     void undoSubmission() {
         if (completed_assignments > 0) {
-            completed_assignments--;
-        }
-        else {
-            completed_assignments = completed_assignments;
+            --completed_assignments;
         }
     }
 
@@ -68,15 +71,23 @@ public:
 class Teacher {
 private:
     string subject;
-    vector<string> groups;
+    string groups[10];
+
 public:
-    Teacher(const string& subject) : subject(subject) {}
+    Teacher() : subject("") {}
+
+    explicit Teacher(const string& sub) : subject(sub) {}
 
     void addGroup(const string& group) {
-        groups.push_back(group);
+        for (int i = 0; i < 10; ++i) {
+            if (groups[i].empty()) {
+                groups[i] = group;
+                break;
+            }
+        }
     }
 
-    vector<string> getGroups() const {
+    string* getGroups() {
         return groups;
     }
 
@@ -88,21 +99,34 @@ public:
 class Group {
 private:
     string name;
-    vector<Student> students;
-    vector<Teacher> teachers;
-public:
-    Group(const string& name) : name(name) {}
+    Student students[50];
+    Teacher teachers[5];
 
-    vector<Student>& getStudents() {
+public:
+    Group() : name("") {}
+    explicit Group(const string& group_name) : name(group_name) {}
+
+
+    Student* getStudents() {
         return students;
     }
 
     void addStudent(const Student& student) {
-        students.push_back(student);
+        for (int i = 0; i < 50; ++i) {
+            if (students[i].getGroupName().empty()) {
+                students[i] = student;
+                break;
+            }
+        }
     }
 
     void addTeacher(const Teacher& teacher) {
-        teachers.push_back(teacher);
+        for (int i = 0; i < 5; ++i) {
+            if (teachers[i].getSubject().empty()) {
+                teachers[i] = teacher;
+                break;
+            }
+        }
     }
 
     string getName() const {
@@ -112,16 +136,29 @@ public:
 
 class School {
 private:
-    vector<Teacher> teachers;
+    Teacher teachers[10];
+
 public:
-    vector<Group> groups;
+    Group groups[10];
+
+    School() {}
 
     void addGroup(const Group& group) {
-        groups.push_back(group);
+        for (int i = 0; i < 10; ++i) {
+            if (groups[i].getName().empty()) {
+                groups[i] = group;
+                break;
+            }
+        }
     }
 
     void addTeacher(const Teacher& teacher) {
-        teachers.push_back(teacher);
+        for (int i = 0; i < 10; ++i) {
+            if (teachers[i].getSubject().empty()) {
+                teachers[i] = teacher;
+                break;
+            }
+        }
     }
 
     void assignWork(Student& student) {
@@ -133,40 +170,45 @@ public:
     }
 
     void showStudentsInGroup(Group& group) {
-        cout << "Количество студентов в группе " << group.getName() << ": " << group.getStudents().size() << endl;
+        cout << "Количество студентов в группе " << group.getName() << ": ";
+        int count = 0;
+        Student* students = group.getStudents();
+        for (int i = 0; i < 50; ++i) {
+            if (!students[i].getGroupName().empty()) {
+                ++count;
+            }
+            else {
+                break;
+            }
+        }
+        cout << count << endl;
     }
 
     void showStudentInfo(const Student& student) {
         cout << "Информация о студенте:" << endl;
         cout << "Название группы: " << student.getGroupName() << endl;
         cout << "Дисциплины: ";
-        for (const auto& subject : student.getSubjects()) {
-            cout << subject << ", ";
+        string* subjects = student.getSubjects();
+        for (int i = 0; i < student.getSubjectsCount(); ++i) {
+            cout << subjects[i] << ", ";
         }
         cout << endl;
         cout << "Количество выполненных работ: " << student.getCompletedAssignments() << endl;
         cout << "Количество долгов: " << student.getDebtsCount() << endl;
     }
 
-    void showAllStudentsInfo() {
-        for (auto& group : groups) {
-            for (auto& student : group.getStudents()) {
-                showStudentInfo(student);
-                cout << endl;
+    void showAllGroups() const {
+        cout << "Все группы:" << endl;
+        for (int i = 0; i < 10; ++i) {
+            if (!groups[i].getName().empty()) {
+                cout << groups[i].getName() << endl;
             }
         }
     }
 
-    void showAllGroups() const {
-        cout << "Все группы:" << endl;
-        for (const auto& group : groups) {
-            cout << group.getName() << endl;
-        }
-    }
-
     bool groupExists(const string& group_name) const {
-        for (const auto& group : groups) {
-            if (group.getName() == group_name) {
+        for (int i = 0; i < 10; ++i) {
+            if (groups[i].getName() == group_name) {
                 return true;
             }
         }
@@ -174,10 +216,17 @@ public:
     }
 
     bool subjectExists(const string& subject) {
-        for (auto& group : groups) {
-            for (auto& student : group.getStudents()) {
-                if (find(student.getSubjects().begin(), student.getSubjects().end(), subject) != student.getSubjects().end())
-                    return true;
+        for (int i = 0; i < 10; ++i) {
+            Student* students = groups[i].getStudents();
+            for (int j = 0; j < 50; ++j) {
+                if (!students[j].getGroupName().empty()) {
+                    string* subjects = students[j].getSubjects();
+                    for (int k = 0; k < students[j].getSubjectsCount(); ++k) {
+                        if (subjects[k] == subject) {
+                            return true;
+                        }
+                    }
+                }
             }
         }
         return false;
@@ -186,13 +235,13 @@ public:
 
 int main() {
     setlocale(LC_ALL, "RUS");
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
+    //SetConsoleCP(1251);
+    //SetConsoleOutputCP(1251);
     setlocale(0, "");
 
     School school;
 
-    cout << "\n>>> ДОБРО ПОЖАЛОВАТЬ В ШКОЛУ <<<\n";
+    cout << "\n>>> ДОБРО ПОЖАЛОВАТЬ В ШАРАГУ <<<\n";
     string group_name;
     cout << "\nВведите название группы: ";
     cin >> group_name;
@@ -287,8 +336,16 @@ int main() {
 
             student1.addSubject(new_subject);
 
-            for (Student& student : group.getStudents()) {
-                student.addSubject(new_subject);
+            for (int i = 0; i < 10; ++i) {
+                Student* students = school.groups[i].getStudents();
+                for (int j = 0; j < 50; ++j) {
+                    if (!students[j].getGroupName().empty()) {
+                        students[j].addSubject(new_subject);
+                    }
+                    else {
+                        break;
+                    }
+                }
             }
 
             cout << "\nДисциплина успешно добавлена!\n" << endl;
@@ -296,7 +353,7 @@ int main() {
             break;
         }
         case '9':
-            cout << "\nГруппе был прощен один долг, Вам кинули респект!";
+            cout << "\nГруппе был прощен один долг!";
             student1.forgiveDebt();
             break;
         case 's':
