@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
@@ -8,17 +9,21 @@ const int MAX_SUBJECTS = 10;
 class Student {
 private:
     string group_name;
-    string subjects[MAX_SUBJECTS];
+    string* subjects;
     int subjects_count = 0;
     int completed_assignments = 0;
     int debts_count = 0;
 
 public:
-    Student() : group_name(""), subjects_count(0), completed_assignments(0), debts_count(0) {}
+    Student() : group_name(""), subjects(new string[MAX_SUBJECTS]), subjects_count(0), completed_assignments(0), debts_count(0) {}
 
-    explicit Student(const string& group) : group_name(group) {}
+    explicit Student(const string& group) : group_name(group), subjects(new string[MAX_SUBJECTS]), subjects_count(0), completed_assignments(0), debts_count(0) {}
 
-    string* getSubjects() {
+    ~Student() {
+        delete[] subjects;
+    }
+
+    string* getSubjects() const {
         return subjects;
     }
 
@@ -235,8 +240,8 @@ public:
 
 int main() {
     setlocale(LC_ALL, "RUS");
-    //SetConsoleCP(1251);
-    //SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
     setlocale(0, "");
 
     School school;
